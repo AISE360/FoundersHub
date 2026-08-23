@@ -44,11 +44,25 @@ export default function App() {
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        const { data: profile } = await supabase
+        let { data: profile } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single()
+        // Auto-create profile if missing (trigger may have been dropped)
+        if (!profile) {
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .insert({
+              id: session.user.id,
+              email: session.user.email!,
+              full_name: session.user.user_metadata?.full_name ||
+                session.user.email!.split('@')[0],
+            })
+            .select()
+            .single()
+          profile = newProfile
+        }
         setUser(profile ?? null)
       }
       setLoading(false)
@@ -57,11 +71,25 @@ export default function App() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        const { data: profile } = await supabase
+        let { data: profile } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single()
+        // Auto-create profile if missing (trigger may have been dropped)
+        if (!profile) {
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .insert({
+              id: session.user.id,
+              email: session.user.email!,
+              full_name: session.user.user_metadata?.full_name ||
+                session.user.email!.split('@')[0],
+            })
+            .select()
+            .single()
+          profile = newProfile
+        }
         setUser(profile ?? null)
       } else {
         setUser(null)
