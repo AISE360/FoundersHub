@@ -12,14 +12,15 @@ VALUES
   ('11111111-0001-0001-0001-000000000002', 'Eleora',                   'Eleora',            '0000000002', 'eleora@client.com',             'Service: Website'),
   ('11111111-0001-0001-0001-000000000003', 'CA Sayed',                 'CA Sayed',          '0000000003', 'casayed@client.com',            'Service: Website + Admin tab'),
   ('11111111-0001-0001-0001-000000000004', 'BM Industries',            'BM Industries',     '0000000004', 'contact@bmmayurindustries.com', 'Mailbox: contact@bmmayurindustries.com (exp 17/11/26), ceo@bmmayurindustries.com (exp 08/07/27)'),
-  ('11111111-0001-0001-0001-000000000005', 'KA Latifix',               'KA Latifix',        '0000000005', 'sales@kllatifix.com',           'Domain: kllatifix.com (exp 01/21/27), Mail: sales@kllatifix.com (exp 01/21/27)'),
-  ('11111111-0001-0001-0001-000000000006', 'UCCI',                     'UCCI',              '0000000006', 'ucci@client.com',               'Service: Website + Admin tab'),
+  ('11111111-0001-0001-0001-000000000005', 'KL Latifix',               'KL Latifix',        '0000000005', 'sales@kllatifix.com',           'Domain: kllatifix.com (exp 01/21/27), Mail: sales@kllatifix.com (exp 01/21/27)'),
+  ('11111111-0001-0001-0001-000000000006', 'UCCI',                     'UCCI',              '0000000006', 'info@ucciindia.org',            'Domain: ucciindia.org (exp 04/09/27), Mail: info@ucciindia.org (exp 04/09/27) | Service: Website + Admin tab'),
   ('11111111-0001-0001-0001-000000000007', 'Virtex Tech',              'Virtex Tech',       '0000000007', 'virtextech@client.com',         'Service: Website'),
   ('11111111-0001-0001-0001-000000000008', 'AISE360',                  'AISE360',           '0000000008', 'contact@aise360.com',           'Domain: aise360.com (exp 19/12/26), Mail: contact@aise360.com (exp 19/12/26)'),
   ('11111111-0001-0001-0001-000000000009', 'Vision Surgical Solutions','Vision Surgical',   '0000000009', 'info@vissol.in',                'Domain: vissol.in (exp 02/08/27), Mail: info@vissol.in, shailesh.tiwari@vissol.in (exp 02/08/27)')
 ON CONFLICT (id) DO UPDATE
   SET company_name   = EXCLUDED.company_name,
       contact_person = EXCLUDED.contact_person,
+      email          = EXCLUDED.email,
       notes          = EXCLUDED.notes;
 
 
@@ -34,13 +35,14 @@ VALUES
   ('22222222-0001-0001-0001-000000000003', 'CA Sayed – Website',             '1 Domain – Website & Hosting | Client: CA Sayed | Budget: ₹10000 | Received: ₹2000 | Status: Active'),
   ('22222222-0001-0001-0001-000000000010', 'CA Sayed – Admin Tab',           'Admin tab module | Client: CA Sayed | Budget: ₹3000 | Received: ₹3000 | Status: Active'),
   ('22222222-0001-0001-0001-000000000004', 'BM Industries – Mailbox',        'Mailbox creation | Client: BM Industries | Budget: ₹850 | Received: ₹850 | Status: Completed'),
-  ('22222222-0001-0001-0001-000000000005', 'KA Latifix – Website & Domain',  'Domain and mail purchased | Client: KA Latifix | Budget: ₹14000 | Received: ₹10000 | Status: Active'),
-  ('22222222-0001-0001-0001-000000000011', 'KA Latifix – Business Mail',     'Business mail setup | Client: KA Latifix | Status: Completed'),
+  ('22222222-0001-0001-0001-000000000005', 'KL Latifix – Website & Domain',  'Domain and mail purchased | Client: KL Latifix | Budget: ₹10000 | Received: ₹10000 | Status: Completed'),
+  ('22222222-0001-0001-0001-000000000011', 'KL Latifix – Business Mail',     'Business mail setup | Client: KL Latifix | Status: Completed'),
   ('22222222-0001-0001-0001-000000000006', 'UCCI – Website',                 'Website development | Client: UCCI | Budget: ₹11000 | Received: ₹0 | Status: Active'),
   ('22222222-0001-0001-0001-000000000012', 'UCCI – Admin Tab',               'Admin tab module | Client: UCCI | Budget: ₹700 | Received: ₹0 | Status: Active'),
+  ('22222222-0001-0001-0001-000000000013', 'UCCI – Domain & Mail',            'Domain: ucciindia.org | Mail: info@ucciindia.org | Expires: 04/09/2027'),
   ('22222222-0001-0001-0001-000000000007', 'Virtex Tech – Website',          'Website development | Client: Virtex Tech | Budget: ₹9500 | Received: ₹3800 | Status: Active'),
   ('22222222-0001-0001-0001-000000000008', 'AISE360 – Domain & Mail',        'Domain: aise360.com | Mail: contact@aise360.com | Expires: 19/12/2026'),
-  ('22222222-0001-0001-0001-000000000009', 'Vision Surgical – Domain & Mail','Domain: vissol.in | Mail: info@vissol.in, shailesh.tiwari@vissol.in | Expires: 02/08/2027')
+  ('22222222-0001-0001-0001-000000000009', 'Vision Surgical Solutions – Domain & Mail','Domain: vissol.in | Mail: info@vissol.in, shailesh.tiwari@vissol.in | Expires: 02/08/2027')
 ON CONFLICT (id) DO UPDATE
   SET title       = EXCLUDED.title,
       description = EXCLUDED.description;
@@ -68,7 +70,7 @@ BEGIN
     ('22222222-0001-0001-0001-000000000002', 'hosting', 'Eleora – Website hosting & setup cost',     4416, CURRENT_DATE, founder_id),
     ('22222222-0001-0001-0001-000000000003', 'hosting', 'CA Sayed – Domain + hosting cost',          1308, CURRENT_DATE, founder_id),
     ('22222222-0001-0001-0001-000000000004', 'software','BM Industries – Mailbox setup cost',          552, CURRENT_DATE, founder_id),
-    ('22222222-0001-0001-0001-000000000005', 'hosting', 'KA Latifix – Domain + mail purchase cost',   904, CURRENT_DATE, founder_id),
+    ('22222222-0001-0001-0001-000000000005', 'hosting', 'KL Latifix – Domain + mail purchase cost',   904, CURRENT_DATE, founder_id),
 
     -- Company-level expenses (right-hand table in the spreadsheet)
     (NULL, 'hosting', 'Company – Domain and Hosting renewal',  1456, CURRENT_DATE, founder_id),
@@ -105,32 +107,43 @@ BEGIN
      'Mail ceo@bmmayurindustries.com expires 08/07/2027. Renew before expiry.',
      '2027-07-01', founder_id, false, 'maintenance'),
 
-    -- KA Latifix
+    -- KL Latifix
     ('22222222-0001-0001-0001-000000000005',
-     'KA Latifix – Domain Renewal (kllatifix.com)',
+     'KL Latifix – Domain Renewal (kllatifix.com)',
      'Domain kllatifix.com expires 01/21/2027. Renew before expiry.',
      '2027-01-14', founder_id, false, 'maintenance'),
 
     ('22222222-0001-0001-0001-000000000005',
-     'KA Latifix – Mail Renewal (sales@kllatifix.com)',
+     'KL Latifix – Mail Renewal (sales@kllatifix.com)',
      'Mail sales@kllatifix.com expires 01/21/2027. Renew before expiry.',
      '2027-01-14', founder_id, false, 'maintenance'),
 
     -- Vision Surgical Solutions
     ('22222222-0001-0001-0001-000000000009',
-     'Vision Surgical – Domain Renewal (vissol.in)',
+     'Vision Surgical Solutions – Domain Renewal (vissol.in)',
      'Domain vissol.in expires 02/08/2027. Renew before expiry.',
      '2027-02-01', founder_id, false, 'maintenance'),
 
     ('22222222-0001-0001-0001-000000000009',
-     'Vision Surgical – Mail Renewal (info@vissol.in)',
+     'Vision Surgical Solutions – Mail Renewal (info@vissol.in)',
      'Mail info@vissol.in expires 02/08/2027. Renew before expiry.',
      '2027-02-01', founder_id, false, 'maintenance'),
 
     ('22222222-0001-0001-0001-000000000009',
-     'Vision Surgical – Mail Renewal (shailesh.tiwari@vissol.in)',
+     'Vision Surgical Solutions – Mail Renewal (shailesh.tiwari@vissol.in)',
      'Mail shailesh.tiwari@vissol.in expires 02/08/2027. Renew before expiry.',
-     '2027-02-01', founder_id, false, 'maintenance');
+     '2027-02-01', founder_id, false, 'maintenance'),
+
+    -- UCCI
+    ('22222222-0001-0001-0001-000000000013',
+     'UCCI – Domain Renewal (ucciindia.org)',
+     'Domain ucciindia.org expires 04/09/2027. Renew before expiry.',
+     '2027-08-28', founder_id, false, 'maintenance'),
+
+    ('22222222-0001-0001-0001-000000000013',
+     'UCCI – Mail Renewal (info@ucciindia.org)',
+     'Mail info@ucciindia.org expires 04/09/2027. Renew before expiry.',
+     '2027-08-28', founder_id, false, 'maintenance');
 
 END;
 $$;
@@ -138,15 +151,15 @@ $$;
 -- ─────────────────────────────────────────
 -- DONE — Summary
 -- ─────────────────────────────────────────
--- Clients   : 9  (Jitendra, Eleora, CA Sayed, BM Industries, KA Latifix, UCCI, Virtex Tech, AISE360, Vision Surgical)
--- Projects  : 12 (using actual schema: id, title, description)
+-- Clients   : 9  (Jitendra, Eleora, CA Sayed, BM Industries, KL Latifix, UCCI, Virtex Tech, AISE360, Vision Surgical Solutions)
+-- Projects  : 13 (using actual schema: id, title, description)
 -- Expenses  : 10 (5 project-level + 5 company-level)
--- Follow-ups: 9  (domain/mail renewal reminders)
+-- Follow-ups: 11 (domain/mail renewal reminders)
 --
 -- Financial totals from spreadsheet:
---   Total charged  : ₹68,850
+--   Total charged  : ₹64,850
 --   Total received : ₹39,600 (approx)
---   Total pending  : ₹30,250
+--   Total pending  : ₹26,250
 --   Total expenses : ₹17,035
---   Total profit   : ₹52,815
+--   Total profit   : ₹48,815
 -- ─────────────────────────────────────────

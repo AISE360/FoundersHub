@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Plus, Search, Users, X, Send, Mail, CheckCircle, Loader2 } from 'lucide-react'
 import type { Client } from '@/types'
@@ -77,9 +77,12 @@ export default function ClientsPage() {
     setNoticeLoading(true)
 
     const { data: projects } = await supabase.from('projects').select('id, title')
-    const clientProjects = (projects ?? []).filter((p: any) =>
-      p.title.toLowerCase().includes(client.company_name.toLowerCase())
-    )
+    const cName = client.company_name.toLowerCase()
+    const clientProjects = (projects ?? []).filter((p: any) => {
+      const pTitle = (p.title ?? '').toLowerCase()
+      const prefix = pTitle.split('–')[0]?.trim() || ''
+      return pTitle.includes(cName) || cName.includes(prefix) || prefix.includes(cName)
+    })
     const projectIds = clientProjects.map((p: any) => p.id)
 
     let items: FollowUpItem[] = []
