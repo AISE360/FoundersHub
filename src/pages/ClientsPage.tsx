@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Plus, Search, Users, X, Send, Mail, CheckCircle, Loader2 } from 'lucide-react'
-import type { Client } from '@/types'
+import { formatCurrency, formatDate } from '@/lib/utils'
+import {
+  Plus, Search, Users, X, Send, Mail, CheckCircle, Loader2,
+  TrendingUp, DollarSign, ArrowUpRight, Calculator
+} from 'lucide-react'
+import type { Client, FinancialEntry } from '@/types'
 
 type FollowUpItem = {
   id: string
@@ -13,6 +17,8 @@ type FollowUpItem = {
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([])
+  const [financialEntries, setFinancialEntries] = useState<FinancialEntry[]>([])
+  const [selectedClientFinancials, setSelectedClientFinancials] = useState<Client | null>(null)
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editClient, setEditClient] = useState<Client | undefined>()
@@ -30,8 +36,12 @@ export default function ClientsPage() {
   const [noticeSent, setNoticeSent] = useState(false)
 
   const load = async () => {
-    const { data } = await supabase.from('clients').select('*').order('company_name')
-    setClients(data ?? [])
+    const [{ data: cData }, { data: fData }] = await Promise.all([
+      supabase.from('clients').select('*').order('company_name'),
+      supabase.from('financial_entries').select('*').order('entry_date', { ascending: false }),
+    ])
+    setClients(cData ?? [])
+    setFinancialEntries((fData as any) ?? [])
     setLoading(false)
   }
 
@@ -182,9 +192,53 @@ export default function ClientsPage() {
             {client.notes && (
               <p className="mt-3 text-xs text-gray-500 bg-gray-50 p-2 rounded-lg line-clamp-2">{client.notes}</p>
             )}
+
+            {/* Financial Performance Summary */}
+            {(() => {
+              const cEntries = financialEntries.filter(fe => fe.client_id === client.id)
+              const cCharged = cEntries.reduce((s, e) => s + Number(e.charged_amount), 0)
+              const cAdvance = cEntries.reduce((s, e) => s + Number(e.advance_amount), 0)
+              const cPending = Math.max(0, cCharged - cAdvance)
+              const cExpenses = cEntries.reduce((s, e) => s + Number(e.expense_amount), 0)
+              const cProfit = cCharged - cExpenses
+
+              return (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                      <Calculator className="w-3.5 h-3.5 text-brand-600" /> Financials
+                    </span>
+                    <button
+                      onClick={() => setSelectedClientFinancials(client)}
+                      className="text-[11px] font-medium text-brand-600 hover:text-brand-800 hover:underline flex items-center gap-0.5"
+                    >
+                      {cEntries.length > 0 ? `${cEntries.length} entries` : 'Breakdown'}
+                      <ArrowUpRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 text-center bg-gray-50 p-2 rounded-lg text-xs">
+                    <div>
+                      <p className="text-[10px] text-gray-400">Charged</p>
+                      <p className="font-semibold text-gray-800 font-mono">{formatCurrency(cCharged)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400">Advance</p>
+                      <p className="font-semibold text-green-600 font-mono">{formatCurrency(cAdvance)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400">Pending</p>
+                      <p className={`font-semibold font-mono ${cPending > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                        {formatCurrency(cPending)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+
             <button
               onClick={() => openNotice(client)}
-              className="mt-4 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm font-medium"
+              className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm font-medium"
             >
               <Mail className="w-4 h-4" />
               Send Renewal Notice
@@ -340,6 +394,128 @@ export default function ClientsPage() {
           </div>
         </div>
       )}
+
+      {/* Client Financial Performance Breakdown Modal */}
+      {selectedClientFinancials && (() => {
+        const clientEntries = financialEntries.filter(fe => fe.client_id === selectedClientFinancials.id)
+        const totalCharged = clientEntries.reduce((s, e) => s + Number(e.charged_amount), 0)
+        const totalAdvance = clientEntries.reduce((s, e) => s + Number(e.advance_amount), 0)
+        const totalPending = Math.max(0, totalCharged - totalAdvance)
+        const totalExpenses = clientEntries.reduce((s, e) => s + Number(e.expense_amount), 0)
+        const totalProfit = totalCharged - totalExpenses
+
+        return (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between p-5 border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+                    <Calculator className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-gray-900">
+                      {selectedClientFinancials.company_name} — Financial Performance
+                    </h2>
+                    <p className="text-xs text-gray-500">Service line-items & P&L breakdown</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedClientFinancials(null)}
+                  className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-5 overflow-y-auto space-y-4 flex-1">
+                {/* 5 KPI Stat Cards for Client */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+                  <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                    <p className="text-[10px] text-gray-500 uppercase">Charged</p>
+                    <p className="text-sm font-bold text-gray-900 font-mono">{formatCurrency(totalCharged)}</p>
+                  </div>
+                  <div className="bg-green-50/60 p-2.5 rounded-lg border border-green-100">
+                    <p className="text-[10px] text-green-700 uppercase">Advance</p>
+                    <p className="text-sm font-bold text-green-700 font-mono">{formatCurrency(totalAdvance)}</p>
+                  </div>
+                  <div className="bg-amber-50/60 p-2.5 rounded-lg border border-amber-100">
+                    <p className="text-[10px] text-amber-700 uppercase">Pending</p>
+                    <p className="text-sm font-bold text-amber-700 font-mono">{formatCurrency(totalPending)}</p>
+                  </div>
+                  <div className="bg-rose-50/60 p-2.5 rounded-lg border border-rose-100">
+                    <p className="text-[10px] text-rose-700 uppercase">Expenses</p>
+                    <p className="text-sm font-bold text-rose-700 font-mono">{formatCurrency(totalExpenses)}</p>
+                  </div>
+                  <div className="bg-emerald-50/60 p-2.5 rounded-lg border border-emerald-100 col-span-2 sm:col-span-1">
+                    <p className="text-[10px] text-emerald-700 uppercase">Profit</p>
+                    <p className="text-sm font-bold text-emerald-700 font-mono">{formatCurrency(totalProfit)}</p>
+                  </div>
+                </div>
+
+                {/* Table of Entries */}
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-gray-50 text-gray-500 font-semibold border-b border-gray-200">
+                      <tr>
+                        <th className="px-3 py-2">Date</th>
+                        <th className="px-3 py-2">Service</th>
+                        <th className="px-3 py-2 text-right">Expense</th>
+                        <th className="px-3 py-2 text-right">Charged</th>
+                        <th className="px-3 py-2 text-right">Advance</th>
+                        <th className="px-3 py-2 text-right">Balance</th>
+                        <th className="px-3 py-2 text-right">Profit</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {clientEntries.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="text-center py-6 text-gray-400">
+                            No service financial entries found for this client.
+                          </td>
+                        </tr>
+                      ) : (
+                        clientEntries.map(e => {
+                          const bal = Math.max(0, Number(e.charged_amount) - Number(e.advance_amount))
+                          const prof = Number(e.charged_amount) - Number(e.expense_amount)
+                          return (
+                            <tr key={e.id} className="hover:bg-gray-50">
+                              <td className="px-3 py-2 text-gray-500">{formatDate(e.entry_date)}</td>
+                              <td className="px-3 py-2 font-medium text-gray-900">{e.service_name}</td>
+                              <td className="px-3 py-2 text-right text-rose-600 font-mono">{formatCurrency(e.expense_amount)}</td>
+                              <td className="px-3 py-2 text-right text-gray-900 font-mono font-semibold">{formatCurrency(e.charged_amount)}</td>
+                              <td className="px-3 py-2 text-right text-green-600 font-mono">{formatCurrency(e.advance_amount)}</td>
+                              <td className="px-3 py-2 text-right text-amber-600 font-mono">{formatCurrency(bal)}</td>
+                              <td className={`px-3 py-2 text-right font-mono font-semibold ${prof >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                {formatCurrency(prof)}
+                              </td>
+                            </tr>
+                          )
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+                <a
+                  href="/financial-performance"
+                  className="text-xs text-brand-600 hover:text-brand-800 font-medium flex items-center gap-1"
+                >
+                  Open in Financial Performance →
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setSelectedClientFinancials(null)}
+                  className="btn-secondary text-xs"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

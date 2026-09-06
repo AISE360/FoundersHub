@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, FolderKanban, CheckSquare, Columns,
   BookOpen, Users, DollarSign, Receipt, FileText,
-  Bell, TrendingUp, UserCheck, X, Zap
+  Bell, TrendingUp, UserCheck, X, Zap, LineChart
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +14,7 @@ const nav = [
   { label: 'Daily Log', to: '/daily-log', icon: BookOpen },
   { label: 'Clients', to: '/clients', icon: Users },
   { divider: true },
+  { label: 'Performance', to: '/financial-performance', icon: LineChart },
   { label: 'Finance', to: '/finance', icon: DollarSign },
   { label: 'Expenses', to: '/expenses', icon: Receipt },
   { label: 'Invoices', to: '/invoices', icon: FileText },

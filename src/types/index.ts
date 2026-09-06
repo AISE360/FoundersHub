@@ -163,3 +163,61 @@ export interface DashboardStats {
   totalExpenses: number
   teamActivity: { founder: Profile; logsToday: number; lastSeen: string }[]
 }
+
+export interface FinancialEntry {
+  id: string
+  client_id: string
+  client?: Client
+  project_id?: string
+  project?: { id: string; name?: string; title?: string }
+  invoice_id?: string
+  invoice?: Invoice
+  service_name: string
+  entry_date: string
+  expense_amount: number
+  charged_amount: number
+  advance_amount: number
+  balance_amount: number
+  profit_amount: number
+  remarks?: string
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+export type CompanyExpenseCategory =
+  | 'Domain'
+  | 'Mailbox'
+  | 'Business Meeting'
+  | 'Return Filing'
+  | 'CA Charges'
+  | 'Food/Travel'
+  | 'Software'
+  | 'Office'
+  | 'Salary'
+  | 'Miscellaneous'
+
+export interface CompanyExpense {
+  id: string
+  expense_date: string
+  category: CompanyExpenseCategory | string
+  description: string
+  amount: number
+  remarks?: string
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface FinancialSummary {
+  totalCharged: number
+  totalAdvance: number
+  totalBalance: number
+  totalServiceExpenses: number
+  totalCompanyExpenses: number
+  totalExpenses: number
+  grossProfit: number
+  netProfit: number
+  cashInHand: number
+}
+

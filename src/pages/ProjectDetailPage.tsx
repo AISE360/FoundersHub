@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { formatCurrency, formatDate, getStatusColor, getPriorityColor } from '@/lib/utils'
-import { ArrowLeft, Plus, Edit, Trash2, IndianRupee } from 'lucide-react'
-import type { Project, Task, Client, Expense } from '@/types'
+import { ArrowLeft, Plus, Edit, Trash2, IndianRupee, Calculator, TrendingUp } from 'lucide-react'
+import type { Project, Task, Client, Expense, FinancialEntry } from '@/types'
 import ProjectModal from '@/components/projects/ProjectModal'
 import TaskModal from '@/components/tasks/TaskModal'
+import FinancialEntryModal from '@/components/finance/FinancialEntryModal'
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -13,21 +14,25 @@ export default function ProjectDetailPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [clients, setClients] = useState<Client[]>([])
+  const [financialEntries, setFinancialEntries] = useState<FinancialEntry[]>([])
   const [showEditModal, setShowEditModal] = useState(false)
   const [showTaskModal, setShowTaskModal] = useState(false)
+  const [showFinancialModal, setShowFinancialModal] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const load = async () => {
-    const [{ data: proj }, { data: t }, { data: exp }, { data: cli }] = await Promise.all([
+    const [{ data: proj }, { data: t }, { data: exp }, { data: cli }, { data: fe }] = await Promise.all([
       supabase.from('projects').select('*, client:clients(*)').eq('id', id!).single(),
       supabase.from('tasks').select('*, assignee:profiles(*)').eq('project_id', id!).order('created_at'),
       supabase.from('expenses').select('*').eq('project_id', id!).order('date', { ascending: false }),
       supabase.from('clients').select('*'),
+      supabase.from('financial_entries').select('*').eq('project_id', id!).order('entry_date', { ascending: false }),
     ])
     setProject(proj as any)
     setTasks((t as any) ?? [])
     setExpenses(exp ?? [])
     setClients(cli ?? [])
+    setFinancialEntries((fe as any) ?? [])
     setLoading(false)
   }
 
@@ -149,6 +154,75 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
+      {/* Financial Performance Services for this Project */}
+      <div className="card p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Calculator className="w-4 h-4 text-brand-600" />
+            <h2 className="font-semibold text-gray-900">
+              Financial Performance Services ({financialEntries.length})
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/financial-performance"
+              className="text-xs text-brand-600 hover:underline mr-2"
+            >
+              Full Financial View →
+            </Link>
+            <button
+              onClick={() => setShowFinancialModal(true)}
+              className="btn-primary text-xs flex items-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Service Entry
+            </button>
+          </div>
+        </div>
+
+        {financialEntries.length === 0 ? (
+          <p className="text-sm text-gray-400 py-4 text-center">
+            No service financial entries linked to this project yet.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase tracking-wider font-semibold">
+                <tr>
+                  <th className="px-3 py-2">Date</th>
+                  <th className="px-3 py-2">Service</th>
+                  <th className="px-3 py-2 text-right">Expense</th>
+                  <th className="px-3 py-2 text-right">Charged</th>
+                  <th className="px-3 py-2 text-right">Advance</th>
+                  <th className="px-3 py-2 text-right">Balance</th>
+                  <th className="px-3 py-2 text-right">Profit</th>
+                  <th className="px-3 py-2">Remarks</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {financialEntries.map(fe => {
+                  const bal = Math.max(0, Number(fe.charged_amount) - Number(fe.advance_amount))
+                  const prof = Number(fe.charged_amount) - Number(fe.expense_amount)
+                  return (
+                    <tr key={fe.id} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-gray-500">{formatDate(fe.entry_date)}</td>
+                      <td className="px-3 py-2 font-medium text-gray-900">{fe.service_name}</td>
+                      <td className="px-3 py-2 text-right text-rose-600 font-mono">{formatCurrency(fe.expense_amount)}</td>
+                      <td className="px-3 py-2 text-right text-gray-900 font-mono font-semibold">{formatCurrency(fe.charged_amount)}</td>
+                      <td className="px-3 py-2 text-right text-green-600 font-mono">{formatCurrency(fe.advance_amount)}</td>
+                      <td className="px-3 py-2 text-right text-amber-600 font-mono">{formatCurrency(bal)}</td>
+                      <td className={`px-3 py-2 text-right font-mono font-semibold ${prof >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {formatCurrency(prof)}
+                      </td>
+                      <td className="px-3 py-2 text-gray-500 max-w-xs truncate">{fe.remarks || '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       {showEditModal && (
         <ProjectModal
           clients={clients}
@@ -163,6 +237,20 @@ export default function ProjectDetailPage() {
           projectId={id!}
           onClose={() => setShowTaskModal(false)}
           onSaved={() => { setShowTaskModal(false); load() }}
+        />
+      )}
+
+      {showFinancialModal && (
+        <FinancialEntryModal
+          clients={clients}
+          projects={project ? [{ id: project.id, name: project.name, client_id: project.client_id }] : []}
+          initialClientId={project?.client_id}
+          initialProjectId={project?.id}
+          onClose={() => setShowFinancialModal(false)}
+          onSaved={() => {
+            setShowFinancialModal(false)
+            load()
+          }}
         />
       )}
     </div>

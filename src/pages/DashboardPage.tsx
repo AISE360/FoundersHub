@@ -14,22 +14,47 @@ export default function DashboardPage() {
   const [todayLogs, setTodayLogs] = useState<(DailyLog & { founder: Profile })[]>([])
   const [pendingTasks, setPendingTasks] = useState<Task[]>([])
   const [founders, setFounders] = useState<Profile[]>([])
+  const [financials, setFinancials] = useState<{
+    revenue: number
+    pending: number
+    netProfit: number
+  } | null>(null)
   const [loading, setLoading] = useState(true)
 
   const today = new Date().toISOString().split('T')[0]
 
   useEffect(() => {
     async function load() {
-      const [{ data: proj }, { data: logs }, { data: tasks }, { data: team }] = await Promise.all([
+      const [
+        { data: proj },
+        { data: logs },
+        { data: tasks },
+        { data: team },
+        { data: fe },
+        { data: ce },
+      ] = await Promise.all([
         supabase.from('projects').select('*').order('created_at', { ascending: false }),
         supabase.from('daily_logs').select('*, founder:profiles(*)').eq('date', today),
         supabase.from('tasks').select('*').in('status', ['todo', 'in-progress']).order('due_date'),
         supabase.from('profiles').select('*').eq('is_active', true),
+        supabase.from('financial_entries').select('*'),
+        supabase.from('company_expenses').select('*'),
       ])
       setProjects(proj ?? [])
       setTodayLogs((logs as any) ?? [])
       setPendingTasks(tasks ?? [])
       setFounders(team ?? [])
+
+      if (fe && fe.length > 0) {
+        const charged = fe.reduce((s, e) => s + Number(e.charged_amount), 0)
+        const advance = fe.reduce((s, e) => s + Number(e.advance_amount), 0)
+        const serviceExp = fe.reduce((s, e) => s + Number(e.expense_amount), 0)
+        const compExp = (ce ?? []).reduce((s, c) => s + Number(c.amount), 0)
+        const pending = Math.max(0, charged - advance)
+        const profit = charged - serviceExp - compExp
+        setFinancials({ revenue: advance, pending, netProfit: profit })
+      }
+
       setLoading(false)
     }
     load()
@@ -37,9 +62,9 @@ export default function DashboardPage() {
 
   const activeProjects = projects.filter(p => p.status === 'active').length
   const completedProjects = projects.filter(p => p.status === 'completed').length
-  const totalRevenue = projects.reduce((s, p) => s + (p.upfront_received ?? 0), 0)
+  const totalRevenue = financials?.revenue ?? projects.reduce((s, p) => s + (p.upfront_received ?? 0), 0)
   const totalBudget = projects.reduce((s, p) => s + (p.budget ?? 0), 0)
-  const pendingAmount = totalBudget - totalRevenue
+  const pendingAmount = financials?.pending ?? (totalBudget - totalRevenue)
 
   const revenueData = projects
     .filter(p => p.status === 'completed')
@@ -52,9 +77,17 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">{formatDate(today)} — Here's what's happening</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-500 text-sm mt-1">{formatDate(today)} — Here's what's happening</p>
+        </div>
+        <Link
+          to="/financial-performance"
+          className="btn-secondary text-xs flex items-center gap-1.5"
+        >
+          <TrendingUp className="w-3.5 h-3.5 text-brand-600" /> Financial Performance →
+        </Link>
       </div>
 
       {/* Stats */}
@@ -63,7 +96,13 @@ export default function DashboardPage() {
           { label: 'Active Projects', value: activeProjects, icon: FolderKanban, color: 'text-brand-600', bg: 'bg-brand-50' },
           { label: 'Total Revenue', value: formatCurrency(totalRevenue), icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50' },
           { label: 'Pending Amount', value: formatCurrency(pendingAmount), icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-          { label: 'Completed', value: completedProjects, icon: CheckCircle, color: 'text-blue-600', bg: 'bg-blue-50' },
+          {
+            label: financials ? 'Net Business Profit' : 'Completed Projects',
+            value: financials ? formatCurrency(financials.netProfit) : completedProjects,
+            icon: financials ? TrendingUp : CheckCircle,
+            color: financials && financials.netProfit < 0 ? 'text-red-600' : 'text-blue-600',
+            bg: financials && financials.netProfit < 0 ? 'bg-red-50' : 'bg-blue-50',
+          },
         ].map(stat => (
           <div key={stat.label} className="card p-5">
             <div className="flex items-center gap-3">

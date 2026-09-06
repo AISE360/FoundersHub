@@ -25,6 +25,7 @@ import InvoicesPage from '@/pages/InvoicesPage'
 import FollowUpsPage from '@/pages/FollowUpsPage'
 import CRMPage from '@/pages/CRMPage'
 import TeamPage from '@/pages/TeamPage'
+import FinancialPerformancePage from '@/pages/FinancialPerformancePage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthStore()
@@ -119,6 +120,7 @@ export default function App() {
           <Route path="daily-log" element={<DailyLogPage />} />
           <Route path="clients" element={<ClientsPage />} />
           <Route path="finance" element={<FinancePage />} />
+          <Route path="financial-performance" element={<FinancialPerformancePage />} />
           <Route path="expenses" element={<ExpensesPage />} />
           <Route path="invoices" element={<InvoicesPage />} />
           <Route path="follow-ups" element={<FollowUpsPage />} />
