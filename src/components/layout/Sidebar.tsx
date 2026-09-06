@@ -45,12 +45,16 @@ export default function Sidebar({ open, onClose }: Props) {
         open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-0 lg:overflow-hidden'
       )}>
         {/* Logo */}
-        <div className="flex items-center justify-between px-5 h-16 border-b border-gray-200 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-gray-900 text-lg">FounderHub</span>
+        <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img
+              src="/logo.png"
+              alt="AISE360 PVT LTD"
+              className="w-8 h-8 rounded-lg object-contain shrink-0"
+            />
+            <span className="font-bold text-gray-900 text-sm tracking-tight truncate">
+              AISE360 PVT LTD
+            </span>
           </div>
           <button onClick={onClose} className="lg:hidden text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />

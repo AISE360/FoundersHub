@@ -25,8 +25,12 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-brand-600 rounded-xl mb-4">
-            <Zap className="w-6 h-6 text-white" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img
+              src="/logo.png"
+              alt="AISE360 PVT LTD"
+              className="w-16 h-16 object-contain rounded-2xl shadow-sm"
+            />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Reset Password</h1>
           <p className="text-gray-500 mt-1">We'll send you a reset link</p>
