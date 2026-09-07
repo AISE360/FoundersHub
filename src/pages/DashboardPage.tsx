@@ -19,6 +19,7 @@ export default function DashboardPage() {
     pending: number
     netProfit: number
   } | null>(null)
+  const [ideasCount, setIdeasCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
 
   const today = new Date().toISOString().split('T')[0]
@@ -32,6 +33,7 @@ export default function DashboardPage() {
         { data: team },
         { data: fe },
         { data: ce },
+        { count: ideasTotal },
       ] = await Promise.all([
         supabase.from('projects').select('*').order('created_at', { ascending: false }),
         supabase.from('daily_logs').select('*, founder:profiles(*)').eq('date', today),
@@ -39,11 +41,13 @@ export default function DashboardPage() {
         supabase.from('profiles').select('*').eq('is_active', true),
         supabase.from('financial_entries').select('*'),
         supabase.from('company_expenses').select('*'),
+        supabase.from('ideas').select('*', { count: 'exact', head: true }),
       ])
       setProjects(proj ?? [])
       setTodayLogs((logs as any) ?? [])
       setPendingTasks(tasks ?? [])
       setFounders(team ?? [])
+      setIdeasCount(ideasTotal ?? 0)
 
       if (fe && fe.length > 0) {
         const charged = fe.reduce((s, e) => s + Number(e.charged_amount), 0)
@@ -116,6 +120,32 @@ export default function DashboardPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Subtle Ideas Vault Card */}
+      <div className="card p-4 bg-gradient-to-r from-amber-50/60 via-white to-slate-50 border border-amber-200/50 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+            💡
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-bold text-gray-900">Ideas</h3>
+              <span className="text-[10px] font-semibold bg-amber-100/80 text-amber-800 px-2 py-0.5 rounded-full">
+                {ideasCount} {ideasCount === 1 ? 'idea' : 'ideas'} captured
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              Capture SaaS, startup & business ideas before they get forgotten.
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/ideas"
+          className="text-xs font-semibold text-brand-700 hover:text-brand-800 flex items-center gap-1 hover:underline shrink-0 ml-4"
+        >
+          View Ideas →
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

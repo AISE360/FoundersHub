@@ -221,3 +221,13 @@ export interface FinancialSummary {
   cashInHand: number
 }
 
+export interface Idea {
+  id: string
+  title: string
+  description?: string | null
+  image_url?: string | null
+  created_by: string
+  creator?: Profile
+  created_at: string
+  updated_at: string
+}

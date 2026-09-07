@@ -26,6 +26,7 @@ import FollowUpsPage from '@/pages/FollowUpsPage'
 import CRMPage from '@/pages/CRMPage'
 import TeamPage from '@/pages/TeamPage'
 import FinancialPerformancePage from '@/pages/FinancialPerformancePage'
+import IdeasPage from '@/pages/IdeasPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthStore()
@@ -126,6 +127,7 @@ export default function App() {
           <Route path="follow-ups" element={<FollowUpsPage />} />
           <Route path="crm" element={<CRMPage />} />
           <Route path="team" element={<TeamPage />} />
+          <Route path="ideas" element={<IdeasPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

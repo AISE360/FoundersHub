@@ -17,10 +17,19 @@ export default function SignupPage() {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
+      options: {
+        data: {
+          full_name: form.full_name,
+        },
+      },
     })
 
     if (signUpError) {
-      setError(signUpError.message)
+      const msg =
+        signUpError.message && signUpError.message !== '{}'
+          ? signUpError.message
+          : 'Failed to create account. Please disable "Confirm email" in Supabase Auth settings or run supabase-fix.sql.'
+      setError(msg)
       setLoading(false)
       return
     }

@@ -15,6 +15,7 @@ import {
   X,
   LineChart,
   ChevronRight,
+  Lightbulb,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -55,6 +56,7 @@ const navSections: NavSection[] = [
       { label: 'Follow-Ups', to: '/follow-ups', icon: Bell },
       { label: 'CRM Leads', to: '/crm', icon: TrendingUp },
       { label: 'Team', to: '/team', icon: UserCheck },
+      { label: 'Ideas', to: '/ideas', icon: Lightbulb },
     ],
   },
 ]
