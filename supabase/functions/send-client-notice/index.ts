@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // Supabase Edge Function: send-client-notice
 // Called manually from the app when founder clicks
 // "Send Renewal Notice" on a client card.
@@ -60,6 +60,21 @@ Deno.serve(async (req) => {
         </tr>`
     }).join('')
 
+    // Plain-text alternative (drastically reduces spam score on Gmail / Outlook)
+    const textContent = `Service Renewal Reminder — AISE 360
+
+Dear ${client_name},
+
+This is a courtesy reminder regarding upcoming renewal dates for your digital services managed by AISE 360.
+
+Services:
+${items.map(i => `- ${i.title.replace(/^[^–]+–\s*/, '')}: Due ${formatDate(i.due_date)}`).join('\n')}
+
+Auto-renewal is disabled. Please reach out to renew: contact@aise360.com
+
+AISE 360 | Digital Agency & Web Solutions
+contact@aise360.com | https://aise360.com`
+
     const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f8fafc;font-family:'Segoe UI',Arial,sans-serif;">
@@ -120,7 +135,7 @@ Deno.serve(async (req) => {
 
     <!-- CTA -->
     <div style="text-align:center;margin-bottom:28px;">
-      <a href="mailto:aisecureedge360@gmail.com?subject=Renewal%20Request%20-%20${encodeURIComponent(client_name)}&body=Hi%20AISE360%20team%2C%0A%0AI%20would%20like%20to%20proceed%20with%20renewal%20for%20my%20services.%0A%0AThanks%2C%0A${encodeURIComponent(client_name)}"
+      <a href="mailto:contact@aise360.com?subject=Renewal%20Request%20-%20${encodeURIComponent(client_name)}&body=Hi%20AISE360%20team%2C%0A%0AI%20would%20like%20to%20proceed%20with%20renewal%20for%20my%20services.%0A%0AThanks%2C%0A${encodeURIComponent(client_name)}"
          style="display:inline-block;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:700;font-size:15px;letter-spacing:0.2px;">
         ✉️ Contact Us to Renew
       </a>
@@ -138,7 +153,7 @@ Deno.serve(async (req) => {
       <div style="color:#1e40af;font-weight:700;font-size:14px;margin-bottom:4px;">AISE 360</div>
       <div style="color:#64748b;font-size:12px;">Digital Agency & Web Solutions</div>
       <div style="margin-top:8px;">
-        <a href="mailto:aisecureedge360@gmail.com" style="color:#3b82f6;font-size:12px;text-decoration:none;">aisecureedge360@gmail.com</a>
+        <a href="mailto:contact@aise360.com" style="color:#3b82f6;font-size:12px;text-decoration:none;">contact@aise360.com</a>
         &nbsp;•&nbsp;
         <a href="https://aise360.com" style="color:#3b82f6;font-size:12px;text-decoration:none;">aise360.com</a>
       </div>
@@ -159,11 +174,13 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: 'AISE 360 <notifications@aise360.com>',
         to: [client_email],
-        reply_to: 'aisecureedge360@gmail.com',
+        reply_to: 'contact@aise360.com',
         subject,
         html,
+        text: textContent,
       }),
     })
+
 
     const data = await res.json()
     if (!res.ok) throw new Error(`Resend error: ${JSON.stringify(data)}`)
