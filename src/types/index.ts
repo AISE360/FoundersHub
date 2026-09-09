@@ -231,3 +231,38 @@ export interface Idea {
   created_at: string
   updated_at: string
 }
+
+export type CredentialCategory =
+  | 'Database'
+  | 'Email & Workspace'
+  | 'Hosting & Domain'
+  | 'Cloud & DevOps'
+  | 'CMS & Web'
+  | 'Payment & Gateway'
+  | 'Repository'
+  | 'Other'
+
+export interface ClientCredential {
+  id: string
+  client_id: string
+  client?: Client
+  service_name: string
+  service_category: CredentialCategory | string
+  username_email: string
+  encrypted_password: string
+  url?: string | null
+  notes?: string | null
+  created_by?: string
+  created_at: string
+  updated_at: string
+  last_accessed_at?: string | null
+}
+
+export interface CredentialAuditLog {
+  id: string
+  credential_id: string
+  user_id?: string | null
+  action: 'created' | 'revealed' | 'copied' | 'updated' | 'deleted'
+  created_at: string
+}
+

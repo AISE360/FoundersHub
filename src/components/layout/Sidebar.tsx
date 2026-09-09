@@ -16,6 +16,7 @@ import {
   LineChart,
   ChevronRight,
   Lightbulb,
+  KeyRound,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -39,6 +40,7 @@ const navSections: NavSection[] = [
       { label: 'Kanban', to: '/kanban', icon: Columns },
       { label: 'Daily Log', to: '/daily-log', icon: BookOpen },
       { label: 'Clients', to: '/clients', icon: Users },
+      { label: 'Credentials', to: '/credentials', icon: KeyRound },
     ],
   },
   {

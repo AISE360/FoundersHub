@@ -3,9 +3,10 @@ import { supabase } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import {
   Plus, Search, Users, X, Send, Mail, CheckCircle, Loader2,
-  TrendingUp, DollarSign, ArrowUpRight, Calculator
+  TrendingUp, DollarSign, ArrowUpRight, Calculator, KeyRound
 } from 'lucide-react'
 import type { Client, FinancialEntry } from '@/types'
+import ClientCredentialsModal from '@/components/credentials/ClientCredentialsModal'
 
 type FollowUpItem = {
   id: string
@@ -35,13 +36,24 @@ export default function ClientsPage() {
   const [noticeSending, setNoticeSending] = useState(false)
   const [noticeSent, setNoticeSent] = useState(false)
 
+  // Credentials vault state
+  const [selectedClientCredentials, setSelectedClientCredentials] = useState<Client | null>(null)
+  const [credCountByClient, setCredCountByClient] = useState<Record<string, number>>({})
+
   const load = async () => {
-    const [{ data: cData }, { data: fData }] = await Promise.all([
+    const [{ data: cData }, { data: fData }, { data: credData }] = await Promise.all([
       supabase.from('clients').select('*').order('company_name'),
       supabase.from('financial_entries').select('*').order('entry_date', { ascending: false }),
+      supabase.from('client_credentials').select('id, client_id'),
     ])
     setClients(cData ?? [])
     setFinancialEntries((fData as any) ?? [])
+
+    const counts: Record<string, number> = {}
+    ;(credData ?? []).forEach((c: any) => {
+      counts[c.client_id] = (counts[c.client_id] || 0) + 1
+    })
+    setCredCountByClient(counts)
     setLoading(false)
   }
 
@@ -236,13 +248,23 @@ export default function ClientsPage() {
               )
             })()}
 
-            <button
-              onClick={() => openNotice(client)}
-              className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm font-medium"
-            >
-              <Mail className="w-4 h-4" />
-              Send Renewal Notice
-            </button>
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <button
+                onClick={() => setSelectedClientCredentials(client)}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-brand-200 bg-brand-50/80 text-brand-700 hover:bg-brand-100 transition-colors text-xs font-semibold"
+                title={`View ${credCountByClient[client.id] || 0} credentials for ${client.company_name}`}
+              >
+                <KeyRound className="w-3.5 h-3.5 text-brand-600" />
+                Vault ({credCountByClient[client.id] || 0})
+              </button>
+              <button
+                onClick={() => openNotice(client)}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-xs font-semibold"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                Notice
+              </button>
+            </div>
           </div>
         ))}
         {filtered.length === 0 && (
@@ -516,6 +538,17 @@ export default function ClientsPage() {
           </div>
         )
       })()}
+
+      {/* Client Credentials Vault Modal */}
+      {selectedClientCredentials && (
+        <ClientCredentialsModal
+          isOpen={Boolean(selectedClientCredentials)}
+          onClose={() => setSelectedClientCredentials(null)}
+          client={selectedClientCredentials}
+          onRefreshParent={load}
+        />
+      )}
     </div>
   )
 }
+
